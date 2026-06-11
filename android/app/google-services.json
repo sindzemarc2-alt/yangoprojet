@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "699414106575",
+    "project_id": "yango-admin",
+    "storage_bucket": "yango-admin.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:699414106575:android:af8833dcf9054f9d4a02ba",
+        "android_client_info": {
+          "package_name": "com.yangochauffeur"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAPVxBgipWUpYBJCfYwBoaOkq4MwUEb1QQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:699414106575:android:6e53fccd1dca07c04a02ba",
+        "android_client_info": {
+          "package_name": "com.yangoprojet"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAPVxBgipWUpYBJCfYwBoaOkq4MwUEb1QQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
