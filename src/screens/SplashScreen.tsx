@@ -9,12 +9,12 @@ export default function SplashScreen({ navigation }: any) {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Yango+Secours</Text>
-      <ActivityIndicator size="large" color="#000" />
+      <ActivityIndicator size="large" color="#FF0000" />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#FFD700' },
-  title: { fontSize: 36, fontWeight: '900', color: '#000', marginBottom: 20 }
+  container: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#FFF' },
+  title: { fontSize: 36, fontWeight: '900', color: '#FF0000', marginBottom: 20 }
 });

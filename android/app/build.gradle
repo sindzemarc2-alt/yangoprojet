@@ -1,4 +1,5 @@
 apply plugin: "com.android.application"
+apply plugin: "com.google.gms.google-services"
 apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
 
@@ -72,15 +73,16 @@ def jscFlavor = 'org.webkit:android-jsc:+'
 android {
     ndkVersion rootProject.ext.ndkVersion
     buildToolsVersion rootProject.ext.buildToolsVersion
-    compileSdk rootProject.ext.compileSdkVersion
+    compileSdk 34
 
     namespace "com.yangoprojet"
     defaultConfig {
         applicationId "com.yangoprojet"
         minSdkVersion rootProject.ext.minSdkVersion
-        targetSdkVersion rootProject.ext.targetSdkVersion
+        targetSdkVersion 34
         versionCode 1
         versionName "1.0"
+        manifestPlaceholders = [GOOGLE_MAPS_API_KEY: "AIzaSyCYclfQJYW_GbzaqcJsz7ausJj9zHmAmaQ"]
     }
     signingConfigs {
         debug {
@@ -101,6 +103,14 @@ android {
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         }
+    }
+}
+
+configurations.all {
+    resolutionStrategy {
+        // Force ces versions pour éviter l'erreur "requires SDK 35"
+        force 'androidx.core:core:1.13.1'
+        force 'androidx.core:core-ktx:1.13.1'
     }
 }
 

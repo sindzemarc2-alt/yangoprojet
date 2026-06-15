@@ -35,11 +35,15 @@ export default function SOSScreen() {
   ];
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView 
+      style={styles.container} 
+      contentContainerStyle={styles.scrollContent}
+      keyboardShouldPersistTaps="handled"
+    >
       <Text style={styles.headerTitle}>YAOUNDÉ SECOURS</Text>
       <Text style={styles.subTitle}>Guide SOS Chauffeur</Text>
 
-      {/* SECTION GUIDES - Gardée intacte */}
+      {/* SECTION GUIDES */}
       <View style={styles.grid}>
         {guides.map((item, index) => (
           <View key={index} style={styles.card}>
@@ -49,10 +53,10 @@ export default function SOSScreen() {
         ))}
       </View>
 
-      {/* SECTION VIDÉO - Ajoutée sans supprimer le reste */}
+      {/* SECTION VIDÉO */}
       <View style={styles.videoSection}>
         <Text style={styles.videoTitle}>📸 PREUVE VIDÉO</Text>
-        <TouchableOpacity style={styles.recordBtn} onPress={handleRecordVideo}>
+        <TouchableOpacity style={styles.recordBtn} onPress={handleRecordVideo} activeOpacity={0.7}>
           <Text style={styles.recordBtnText}>FILMER LA SCÈNE</Text>
         </TouchableOpacity>
       </View>
@@ -64,7 +68,7 @@ export default function SOSScreen() {
         <Text style={styles.hDist}>À 2.1 km de votre position</Text>
       </View>
 
-      <TouchableOpacity style={styles.sosButton} onPress={() => Alert.alert("ALERTE", "Position transmise.")}>
+      <TouchableOpacity style={styles.sosButton} onPress={() => Alert.alert("ALERTE", "Position transmise.")} activeOpacity={0.8}>
         <Text style={styles.sosButtonText}>LANCER L'ALERTE SOS</Text>
       </TouchableOpacity>
     </ScrollView>
@@ -72,21 +76,22 @@ export default function SOSScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#000', padding: 20 },
+  container: { flex: 1, backgroundColor: '#FF0000' },
+  scrollContent: { padding: 20, flexGrow: 1 },
   headerTitle: { color: '#FFF', fontSize: 26, fontWeight: '900', textAlign: 'center', marginTop: 20 },
-  subTitle: { color: '#AAA', textAlign: 'center', marginBottom: 20 },
+  subTitle: { color: '#FFF', textAlign: 'center', marginBottom: 20, opacity: 0.8 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
-  card: { width: '48%', backgroundColor: '#111', padding: 15, borderRadius: 10, marginBottom: 15, borderWidth: 1, borderColor: '#333' },
-  cardTitle: { color: '#FFD700', fontSize: 12, fontWeight: 'bold', marginBottom: 5 },
+  card: { width: '48%', backgroundColor: '#D00000', padding: 15, borderRadius: 10, marginBottom: 15, borderWidth: 1, borderColor: '#FFF' },
+  cardTitle: { color: '#FFF', fontSize: 12, fontWeight: 'bold', marginBottom: 5 },
   cardInfo: { color: '#FFF', fontSize: 11 },
-  videoSection: { backgroundColor: '#111', padding: 20, borderRadius: 10, marginBottom: 20, borderWidth: 1, borderColor: '#FFD700' },
-  videoTitle: { color: '#FFD700', fontWeight: 'bold', marginBottom: 10 },
-  recordBtn: { backgroundColor: '#FF0000', padding: 15, borderRadius: 10, alignItems: 'center' },
-  recordBtnText: { color: '#FFF', fontWeight: 'bold' },
-  hospitalCard: { backgroundColor: '#FFD700', padding: 15, borderRadius: 10, marginBottom: 30 },
+  videoSection: { backgroundColor: '#D00000', padding: 20, borderRadius: 10, marginBottom: 20, borderWidth: 1, borderColor: '#FFF' },
+  videoTitle: { color: '#FFF', fontWeight: 'bold', marginBottom: 10 },
+  recordBtn: { backgroundColor: '#FFF', padding: 15, borderRadius: 10, alignItems: 'center', elevation: 2 },
+  recordBtnText: { color: '#FF0000', fontWeight: 'bold' },
+  hospitalCard: { backgroundColor: '#FFF', padding: 15, borderRadius: 10, marginBottom: 30 },
   hTitle: { fontSize: 10, fontWeight: 'bold' },
   hName: { fontSize: 18, fontWeight: '900', marginTop: 5 },
   hDist: { fontSize: 12, marginTop: 5 },
-  sosButton: { backgroundColor: '#FF0000', padding: 20, borderRadius: 10, alignItems: 'center', marginBottom: 50 },
-  sosButtonText: { color: '#FFF', fontWeight: 'bold', fontSize: 14 }
+  sosButton: { backgroundColor: '#FFF', padding: 20, borderRadius: 10, alignItems: 'center', marginBottom: 50, elevation: 8, zIndex: 10 },
+  sosButtonText: { color: '#FF0000', fontWeight: '900', fontSize: 16 }
 });
