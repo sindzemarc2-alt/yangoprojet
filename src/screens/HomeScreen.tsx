@@ -9,7 +9,7 @@ export default function HomeScreen({ navigation }: any) {
 
       <TouchableOpacity 
         style={styles.btnDriver} 
-        onPress={() => navigation.navigate('ChauffeurDashboard')}
+        onPress={() => navigation.navigate('Login')}
         activeOpacity={0.7}
       >
         <Text style={styles.btnTextWhite}>Accès Chauffeur</Text>

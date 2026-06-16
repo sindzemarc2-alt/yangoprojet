@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigation, DrawerActions } from '@react-navigation/native';
 import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, Modal, Alert, Platform, PermissionsAndroid } from 'react-native';
-import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
-import Geolocation from 'react-native-geolocation-service';
+import MapView, { Marker } from 'react-native-maps';
 import firestore from '@react-native-firebase/firestore';
+import auth from '@react-native-firebase/auth';
 
 export default function ChauffeurDashboard({ navigation }: any) {
+  const nav = useNavigation();
   const [isOnline, setIsOnline] = useState(true);
   const [timer, setTimer] = useState(14400); // 4 heures en secondes
   const [currentOrder, setCurrentOrder] = useState<any>(null);
@@ -31,19 +33,14 @@ export default function ChauffeurDashboard({ navigation }: any) {
     requestLocationPermission();
 
     // Suivi GPS du chauffeur (Toutes les 10m ou changement de position)
-    const watchId = Geolocation.watchPosition(
-      (position) => {
-        const { latitude, longitude } = position.coords;
-        setDriverLocation({
-          latitude,
-          longitude,
-          latitudeDelta: 0.01,
-          longitudeDelta: 0.01,
-        });
-      },
-      (error) => console.log(error),
-      { enableHighAccuracy: true, distanceFilter: 10 }
-    );
+    // Position fixe Yaoundé (géolocalisation à intégrer plus tard)
+    setDriverLocation({
+      latitude: 3.8480,
+      longitude: 11.5021,
+      latitudeDelta: 0.01,
+      longitudeDelta: 0.01,
+    });
+    const watchId = 0;
 
     // Écoute des nouvelles courses sur Firestore
     const unsubscribe = firestore()
@@ -64,7 +61,7 @@ export default function ChauffeurDashboard({ navigation }: any) {
     // Écoute des revenus réels (somme des courses terminées pour ce chauffeur)
     const unsubscribeRevenue = firestore()
       .collection('courses')
-      .where('driverId', '==', 'CHAUFFEUR_CONNECTE_ID') 
+      .where('driverId', '==', auth().currentUser?.uid || 'inconnu') 
       .where('status', '==', 'termine')
       .onSnapshot(querySnapshot => {
         let total = 0;
@@ -77,7 +74,7 @@ export default function ChauffeurDashboard({ navigation }: any) {
     return () => {
       unsubscribe();
       unsubscribeRevenue();
-      Geolocation.clearWatch(watchId);
+      
     };
   }, [isOnline]);
 
@@ -88,7 +85,7 @@ export default function ChauffeurDashboard({ navigation }: any) {
       // Mise à jour dans Firebase : le client reçoit l'info en temps réel
       await firestore().collection('courses').doc(currentOrder.id).update({
         status: 'acceptee',
-        driverId: 'CHAUFFEUR_CONNECTE_ID', // Remplace par l'id réel
+        driverId: auth().currentUser?.uid || 'inconnu', // Remplace par l'id réel
       });
     } catch (error) {
       Alert.alert("Erreur", "Impossible d'accepter la course.");
@@ -108,6 +105,9 @@ export default function ChauffeurDashboard({ navigation }: any) {
     <SafeAreaView style={styles.container}>
       {/* HEADER */}
       <View style={styles.header}>
+        <TouchableOpacity onPress={() => nav.dispatch(DrawerActions.openDrawer())} style={styles.menuBtn}>
+          <Text style={styles.menuIcon}>☰</Text>
+        </TouchableOpacity>
         <View>
           <TouchableOpacity 
             onPress={() => setIsOnline(!isOnline)}
@@ -118,6 +118,9 @@ export default function ChauffeurDashboard({ navigation }: any) {
             </Text>
           </TouchableOpacity>
           <Text style={styles.weatherText}>Yaoundé: 26°C, Nuageux</Text>
+        <TouchableOpacity onPress={() => navigation.navigate('Profil')} style={{marginTop: 8}}>
+          <Text style={{color: '#FFF', fontSize: 13, textDecorationLine: 'underline'}}>👤 Mon profil</Text>
+        </TouchableOpacity>
         </View>
         <View style={styles.soldeContainer}>
           <Text style={styles.soldeLabel}>Revenus</Text>
@@ -134,7 +137,7 @@ export default function ChauffeurDashboard({ navigation }: any) {
       {/* MAP */}
       <View style={styles.mapContainer}>
         <MapView
-          provider={PROVIDER_GOOGLE}
+          
           style={StyleSheet.absoluteFillObject}
           region={driverLocation}
           showsUserLocation={true}
@@ -197,6 +200,8 @@ export default function ChauffeurDashboard({ navigation }: any) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#FFF' },
+  menuBtn: { marginRight: 10 },
+  menuIcon: { color: '#FFF', fontSize: 26, fontWeight: 'bold' },
   header: { padding: 25, backgroundColor: '#FF0000', flexDirection: 'row', justifyContent: 'space-between' },
   statusBadge: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20 },
   statusValue: { fontSize: 13, fontWeight: '900', color: '#FFF' },
