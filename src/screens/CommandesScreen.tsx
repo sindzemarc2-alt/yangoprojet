@@ -1,7 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, memo } from 'react';
 import { View, Text, FlatList, StyleSheet, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import firestore from '@react-native-firebase/firestore';
 import auth from '@react-native-firebase/auth';
+
+// Composant carte mémorisé : ne re-render que si SES propres données changent,
+// pas à chaque mise à jour de la liste entière
+const CommandeCard = memo(({ item, onAccept }: any) => (
+  <View style={styles.card}>
+    <Text style={styles.client}>{item.clientName || 'Client'}</Text>
+    <Text style={styles.pickup}>📍 {item.pickup || 'Non défini'}</Text>
+    <Text style={styles.price}>{item.price || '0'} FCFA</Text>
+    <TouchableOpacity style={styles.acceptBtn} onPress={() => onAccept(item.id)}>
+      <Text style={styles.acceptText}>ACCEPTER</Text>
+    </TouchableOpacity>
+  </View>
+));
 
 export default function CommandesScreen() {
   const [commandes, setCommandes] = useState<any[]>([]);
@@ -19,12 +32,22 @@ export default function CommandesScreen() {
     return unsub;
   }, []);
 
-  const accepter = async (id: string) => {
+  // Mémorisée : la fonction ne change pas entre les renders, donc les cartes
+  // mémorisées (CommandeCard) ne re-render pas inutilement
+  const accepter = useCallback(async (id: string) => {
     try {
       await firestore().collection('courses').doc(id).update({ status: 'acceptee', driverId: uid });
       Alert.alert('✅', 'Course acceptée !');
-    } catch { Alert.alert('Erreur', 'Impossible d\'accepter.'); }
-  };
+    } catch {
+      Alert.alert('Erreur', "Impossible d'accepter.");
+    }
+  }, [uid]);
+
+  const renderItem = useCallback(({ item }: any) => (
+    <CommandeCard item={item} onAccept={accepter} />
+  ), [accepter]);
+
+  const keyExtractor = useCallback((item: any) => item.id, []);
 
   if (loading) return <View style={styles.center}><ActivityIndicator size="large" color="#FF0000" /></View>;
 
@@ -35,17 +58,13 @@ export default function CommandesScreen() {
         ? <View style={styles.center}><Text style={styles.empty}>Aucune commande en attente</Text></View>
         : <FlatList
             data={commandes}
-            keyExtractor={i => i.id}
-            renderItem={({ item }) => (
-              <View style={styles.card}>
-                <Text style={styles.client}>{item.clientName || 'Client'}</Text>
-                <Text style={styles.pickup}>📍 {item.pickup || 'Non défini'}</Text>
-                <Text style={styles.price}>{item.price || '0'} FCFA</Text>
-                <TouchableOpacity style={styles.acceptBtn} onPress={() => accepter(item.id)}>
-                  <Text style={styles.acceptText}>ACCEPTER</Text>
-                </TouchableOpacity>
-              </View>
-            )}
+            keyExtractor={keyExtractor}
+            renderItem={renderItem}
+            // Optimisations de rendu pour les listes Firestore qui changent souvent
+            removeClippedSubviews={true}
+            maxToRenderPerBatch={10}
+            windowSize={5}
+            initialNumToRender={8}
           />
       }
     </View>

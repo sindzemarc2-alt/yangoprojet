@@ -1,7 +1,24 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, memo } from 'react';
 import { View, Text, FlatList, StyleSheet, ActivityIndicator } from 'react-native';
 import firestore from '@react-native-firebase/firestore';
 import auth from '@react-native-firebase/auth';
+
+const statusColor = (s: string) => s === 'termine' ? '#2ecc71' : s === 'acceptee' ? '#f39c12' : '#e74c3c';
+const statusLabel = (s: string) => s === 'termine' ? 'Terminée' : s === 'acceptee' ? 'En cours' : 'En attente';
+
+// Carte mémorisée pour éviter les re-renders inutiles sur toute la liste
+const CourseCard = memo(({ item }: any) => (
+  <View style={styles.card}>
+    <View style={styles.cardTop}>
+      <Text style={styles.client}>{item.clientName || 'Client'}</Text>
+      <View style={[styles.badge, { backgroundColor: statusColor(item.status) }]}>
+        <Text style={styles.badgeText}>{statusLabel(item.status)}</Text>
+      </View>
+    </View>
+    <Text style={styles.pickup}>📍 {item.pickup || 'Non défini'}</Text>
+    <Text style={styles.amount}>{item.amount || item.price || '0'} FCFA</Text>
+  </View>
+));
 
 export default function HistoriqueScreen() {
   const [courses, setCourses] = useState<any[]>([]);
@@ -18,10 +35,10 @@ export default function HistoriqueScreen() {
         setLoading(false);
       });
     return unsub;
-  }, []);
+  }, [uid]);
 
-  const statusColor = (s: string) => s === 'termine' ? '#2ecc71' : s === 'acceptee' ? '#f39c12' : '#e74c3c';
-  const statusLabel = (s: string) => s === 'termine' ? 'Terminée' : s === 'acceptee' ? 'En cours' : 'En attente';
+  const renderItem = useCallback(({ item }: any) => <CourseCard item={item} />, []);
+  const keyExtractor = useCallback((item: any) => item.id, []);
 
   if (loading) return <View style={styles.center}><ActivityIndicator size="large" color="#FF0000" /></View>;
 
@@ -32,19 +49,12 @@ export default function HistoriqueScreen() {
         ? <View style={styles.center}><Text style={styles.empty}>Aucune course pour l'instant</Text></View>
         : <FlatList
             data={courses}
-            keyExtractor={i => i.id}
-            renderItem={({ item }) => (
-              <View style={styles.card}>
-                <View style={styles.cardTop}>
-                  <Text style={styles.client}>{item.clientName || 'Client'}</Text>
-                  <View style={[styles.badge, { backgroundColor: statusColor(item.status) }]}>
-                    <Text style={styles.badgeText}>{statusLabel(item.status)}</Text>
-                  </View>
-                </View>
-                <Text style={styles.pickup}>📍 {item.pickup || 'Non défini'}</Text>
-                <Text style={styles.amount}>{item.amount || item.price || '0'} FCFA</Text>
-              </View>
-            )}
+            keyExtractor={keyExtractor}
+            renderItem={renderItem}
+            removeClippedSubviews={true}
+            maxToRenderPerBatch={10}
+            windowSize={5}
+            initialNumToRender={8}
           />
       }
     </View>

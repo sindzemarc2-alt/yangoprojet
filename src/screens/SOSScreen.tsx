@@ -1,11 +1,19 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { launchCamera } from 'react-native-image-picker';
 import { check, request, PERMISSIONS, RESULTS } from 'react-native-permissions';
 
-export default function SOSScreen() {
+// Sorti du composant : ce tableau est statique, pas besoin de le recréer à chaque render
+const GUIDES = [
+  { title: 'Malaise Cardiaque', info: 'Asseoir la victime, desserrer les habits, alerter immédiat.' },
+  { title: 'AVC', info: 'Parler, lever les bras, observer visage, ne pas faire boire.' },
+  { title: 'Hémorragie', info: 'Surélever les jambes, couvrir, compression directe.' },
+  { title: 'Perte Connaissance', info: 'Position latérale, vérifier respiration, ne pas secouer.' },
+  { title: 'Étouffement', info: '5 claques dans le dos, Heimlich si échec, surveiller.' },
+  { title: 'Brûlures Graves', info: "Arroser à l'eau, ne pas percer cloques, couvrir tissu propre." },
+];
 
-  // Vérification automatique des permissions au chargement
+export default function SOSScreen() {
   useEffect(() => {
     check(PERMISSIONS.ANDROID.CAMERA).then((result) => {
       if (result !== RESULTS.GRANTED) {
@@ -14,7 +22,7 @@ export default function SOSScreen() {
     });
   }, []);
 
-  const handleRecordVideo = () => {
+  const handleRecordVideo = useCallback(() => {
     launchCamera({ mediaType: 'video', videoQuality: 'medium' }, (response) => {
       if (response.didCancel) return;
       if (response.errorCode) {
@@ -23,37 +31,30 @@ export default function SOSScreen() {
         Alert.alert("Succès", "Vidéo enregistrée avec succès.");
       }
     });
-  };
+  }, []);
 
-  const guides = [
-    { title: 'Malaise Cardiaque', info: 'Asseoir la victime, desserrer les habits, alerter immédiat.' },
-    { title: 'AVC', info: 'Parler, lever les bras, observer visage, ne pas faire boire.' },
-    { title: 'Hémorragie', info: 'Surélever les jambes, couvrir, compression directe.' },
-    { title: 'Perte Connaissance', info: 'Position latérale, vérifier respiration, ne pas secouer.' },
-    { title: 'Étouffement', info: '5 claques dans le dos, Heimlich si échec, surveiller.' },
-    { title: 'Brûlures Graves', info: 'Arroser à l\'eau, ne pas percer cloques, couvrir tissu propre.' },
-  ];
+  const handleSOSAlert = useCallback(() => {
+    Alert.alert("ALERTE", "Position transmise.");
+  }, []);
 
   return (
-    <ScrollView 
-      style={styles.container} 
+    <ScrollView
+      style={styles.container}
       contentContainerStyle={styles.scrollContent}
       keyboardShouldPersistTaps="handled"
     >
       <Text style={styles.headerTitle}>YAOUNDÉ SECOURS</Text>
       <Text style={styles.subTitle}>Guide SOS Chauffeur</Text>
 
-      {/* SECTION GUIDES */}
       <View style={styles.grid}>
-        {guides.map((item, index) => (
-          <View key={index} style={styles.card}>
+        {GUIDES.map((item) => (
+          <View key={item.title} style={styles.card}>
             <Text style={styles.cardTitle}>{item.title.toUpperCase()}</Text>
             <Text style={styles.cardInfo}>{item.info}</Text>
           </View>
         ))}
       </View>
 
-      {/* SECTION VIDÉO */}
       <View style={styles.videoSection}>
         <Text style={styles.videoTitle}>📸 PREUVE VIDÉO</Text>
         <TouchableOpacity style={styles.recordBtn} onPress={handleRecordVideo} activeOpacity={0.7}>
@@ -61,14 +62,13 @@ export default function SOSScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* SECTION HÔPITAL - Gardée intacte */}
       <View style={styles.hospitalCard}>
         <Text style={styles.hTitle}>HÔPITAL LE PLUS PROCHE</Text>
         <Text style={styles.hName}>Hôpital Central de Yaoundé</Text>
         <Text style={styles.hDist}>À 2.1 km de votre position</Text>
       </View>
 
-      <TouchableOpacity style={styles.sosButton} onPress={() => Alert.alert("ALERTE", "Position transmise.")} activeOpacity={0.8}>
+      <TouchableOpacity style={styles.sosButton} onPress={handleSOSAlert} activeOpacity={0.8}>
         <Text style={styles.sosButtonText}>LANCER L'ALERTE SOS</Text>
       </TouchableOpacity>
     </ScrollView>

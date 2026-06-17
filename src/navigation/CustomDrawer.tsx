@@ -16,7 +16,6 @@ export default function CustomDrawer(props: any) {
         text: 'Déconnecter', style: 'destructive',
         onPress: async () => {
           await auth().signOut();
-          props.navigation.replace('Login');
         }
       }
     ]);

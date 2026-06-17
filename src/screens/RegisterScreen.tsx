@@ -6,6 +6,22 @@ import {
 import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
 
+// Traduit les codes d'erreur Firebase en messages clairs et compréhensibles
+const getErrorMessage = (code: string) => {
+  switch (code) {
+    case 'auth/email-already-in-use':
+      return 'Un compte existe déjà avec cet email. Connectez-vous plutôt.';
+    case 'auth/invalid-email':
+      return "Format d'email invalide.";
+    case 'auth/weak-password':
+      return 'Mot de passe trop faible (6 caractères minimum).';
+    case 'auth/network-request-failed':
+      return 'Problème de connexion internet.';
+    default:
+      return "Une erreur s'est produite. Réessayez.";
+  }
+};
+
 export default function RegisterScreen({ navigation }: any) {
   const [nom, setNom] = useState('');
   const [email, setEmail] = useState('');
@@ -17,10 +33,13 @@ export default function RegisterScreen({ navigation }: any) {
       Alert.alert('Erreur', 'Veuillez remplir tous les champs.');
       return;
     }
+    if (password.length < 6) {
+      Alert.alert('Erreur', 'Le mot de passe doit contenir au moins 6 caractères.');
+      return;
+    }
     setLoading(true);
     try {
       const { user } = await auth().createUserWithEmailAndPassword(email, password);
-      // Crée le profil chauffeur dans Firestore
       await firestore().collection('chauffeurs').doc(user.uid).set({
         uid: user.uid,
         nom,
@@ -30,7 +49,18 @@ export default function RegisterScreen({ navigation }: any) {
       });
       navigation.replace('Main');
     } catch (error: any) {
-      Alert.alert('Inscription échouée', error.message);
+      if (error.code === 'auth/email-already-in-use') {
+        Alert.alert(
+          'Compte existant',
+          'Un compte existe déjà avec cet email.',
+          [
+            { text: 'Annuler', style: 'cancel' },
+            { text: 'Se connecter', onPress: () => navigation.navigate('Login') }
+          ]
+        );
+      } else {
+        Alert.alert('Inscription échouée', getErrorMessage(error.code));
+      }
     } finally {
       setLoading(false);
     }

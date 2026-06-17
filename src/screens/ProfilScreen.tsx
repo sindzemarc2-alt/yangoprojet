@@ -12,6 +12,8 @@ export default function ProfilScreen({ navigation }: any) {
   const [vehicule, setVehicule] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [changingPwd, setChangingPwd] = useState(false);
 
   const uid = auth().currentUser?.uid;
   const email = auth().currentUser?.email;
@@ -45,15 +47,33 @@ export default function ProfilScreen({ navigation }: any) {
     }
   };
 
+  const handleChangePassword = async () => {
+    if (!newPassword || newPassword.length < 6) {
+      Alert.alert('Erreur', 'Le mot de passe doit contenir au moins 6 caractères.');
+      return;
+    }
+    setChangingPwd(true);
+    try {
+      await auth().currentUser?.updatePassword(newPassword);
+      setNewPassword('');
+      Alert.alert('Succès', 'Mot de passe modifié !');
+    } catch (e: any) {
+      if (e.code === 'auth/requires-recent-login') {
+        Alert.alert('Session expirée', 'Reconnectez-vous pour changer le mot de passe.');
+      } else {
+        Alert.alert('Erreur', 'Impossible de modifier le mot de passe.');
+      }
+    } finally {
+      setChangingPwd(false);
+    }
+  };
+
   const handleLogout = async () => {
     Alert.alert('Déconnexion', 'Voulez-vous vraiment vous déconnecter ?', [
       { text: 'Annuler', style: 'cancel' },
       {
         text: 'Déconnecter', style: 'destructive',
-        onPress: async () => {
-          await auth().signOut();
-          navigation.replace('Login');
-        }
+        onPress: async () => { await auth().signOut(); }
       }
     ]);
   };
@@ -66,7 +86,6 @@ export default function ProfilScreen({ navigation }: any) {
 
   return (
     <ScrollView style={styles.container}>
-      {/* HEADER */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
           <Text style={styles.backText}>← Retour</Text>
@@ -74,7 +93,6 @@ export default function ProfilScreen({ navigation }: any) {
         <Text style={styles.title}>Mon Profil</Text>
       </View>
 
-      {/* AVATAR */}
       <View style={styles.avatarContainer}>
         <View style={styles.avatar}>
           <Text style={styles.avatarText}>{nom ? nom[0].toUpperCase() : '?'}</Text>
@@ -82,45 +100,37 @@ export default function ProfilScreen({ navigation }: any) {
         <Text style={styles.emailText}>{email}</Text>
       </View>
 
-      {/* FORMULAIRE */}
       <View style={styles.form}>
         <Text style={styles.label}>Nom complet</Text>
-        <TextInput
-          style={styles.input}
-          value={nom}
-          onChangeText={setNom}
-          placeholder="Votre nom"
-          placeholderTextColor="#999"
-        />
+        <TextInput style={styles.input} value={nom} onChangeText={setNom}
+          placeholder="Votre nom" placeholderTextColor="#999" />
 
         <Text style={styles.label}>Téléphone</Text>
-        <TextInput
-          style={styles.input}
-          value={telephone}
-          onChangeText={setTelephone}
-          placeholder="+237 6XX XXX XXX"
-          placeholderTextColor="#999"
-          keyboardType="phone-pad"
-        />
+        <TextInput style={styles.input} value={telephone} onChangeText={setTelephone}
+          placeholder="+237 6XX XXX XXX" placeholderTextColor="#999" keyboardType="phone-pad" />
 
         <Text style={styles.label}>Véhicule</Text>
-        <TextInput
-          style={styles.input}
-          value={vehicule}
-          onChangeText={setVehicule}
-          placeholder="Ex: Toyota Corolla - Blanc"
-          placeholderTextColor="#999"
-        />
+        <TextInput style={styles.input} value={vehicule} onChangeText={setVehicule}
+          placeholder="Ex: Toyota Corolla - Blanc" placeholderTextColor="#999" />
 
         <TouchableOpacity style={styles.saveBtn} onPress={handleSave} disabled={saving}>
-          {saving
-            ? <ActivityIndicator color="#FFF" />
-            : <Text style={styles.saveBtnText}>ENREGISTRER</Text>
-          }
+          {saving ? <ActivityIndicator color="#FFF" /> : <Text style={styles.saveBtnText}>ENREGISTRER</Text>}
+        </TouchableOpacity>
+
+        <Text style={styles.sectionTitle}>🔒 Modifier le mot de passe</Text>
+        <TextInput
+          style={styles.input}
+          value={newPassword}
+          onChangeText={setNewPassword}
+          placeholder="Nouveau mot de passe (min. 6 caractères)"
+          placeholderTextColor="#999"
+          secureTextEntry
+        />
+        <TouchableOpacity style={styles.pwdBtn} onPress={handleChangePassword} disabled={changingPwd}>
+          {changingPwd ? <ActivityIndicator color="#FFF" /> : <Text style={styles.saveBtnText}>CHANGER LE MOT DE PASSE</Text>}
         </TouchableOpacity>
       </View>
 
-      {/* DÉCONNEXION */}
       <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
         <Text style={styles.logoutText}>🚪 Se déconnecter</Text>
       </TouchableOpacity>
@@ -141,11 +151,10 @@ const styles = StyleSheet.create({
   emailText: { color: '#FFF', fontSize: 14, opacity: 0.9 },
   form: { padding: 25 },
   label: { fontSize: 13, color: '#666', marginBottom: 6, marginTop: 10, fontWeight: '600' },
-  input: {
-    borderWidth: 1, borderColor: '#DDD', borderRadius: 12,
-    padding: 15, fontSize: 16, color: '#000', backgroundColor: '#F9F9F9'
-  },
+  sectionTitle: { fontSize: 16, fontWeight: '800', color: '#333', marginTop: 30, marginBottom: 10 },
+  input: { borderWidth: 1, borderColor: '#DDD', borderRadius: 12, padding: 15, fontSize: 16, color: '#000', backgroundColor: '#F9F9F9' },
   saveBtn: { backgroundColor: '#FF0000', padding: 18, borderRadius: 25, alignItems: 'center', marginTop: 25, elevation: 3 },
+  pwdBtn: { backgroundColor: '#333', padding: 18, borderRadius: 25, alignItems: 'center', marginTop: 15, elevation: 3 },
   saveBtnText: { color: '#FFF', fontWeight: 'bold', fontSize: 16 },
   logoutBtn: { margin: 25, padding: 18, borderRadius: 25, alignItems: 'center', borderWidth: 2, borderColor: '#FF0000' },
   logoutText: { color: '#FF0000', fontWeight: 'bold', fontSize: 16 },

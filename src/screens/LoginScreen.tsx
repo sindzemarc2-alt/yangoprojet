@@ -5,10 +5,32 @@ import {
 } from 'react-native';
 import auth from '@react-native-firebase/auth';
 
+// Traduit les codes d'erreur Firebase en messages clairs et compréhensibles
+const getErrorMessage = (code: string) => {
+  switch (code) {
+    case 'auth/invalid-credential':
+    case 'auth/wrong-password':
+      return 'Mot de passe incorrect. Vérifiez et réessayez.';
+    case 'auth/user-not-found':
+      return 'Aucun compte trouvé avec cet email.';
+    case 'auth/invalid-email':
+      return "Format d'email invalide.";
+    case 'auth/user-disabled':
+      return 'Ce compte a été désactivé.';
+    case 'auth/too-many-requests':
+      return 'Trop de tentatives. Réessayez dans quelques minutes.';
+    case 'auth/network-request-failed':
+      return 'Problème de connexion internet.';
+    default:
+      return "Une erreur s'est produite. Réessayez.";
+  }
+};
+
 export default function LoginScreen({ navigation }: any) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -20,9 +42,28 @@ export default function LoginScreen({ navigation }: any) {
       await auth().signInWithEmailAndPassword(email, password);
       navigation.replace('Main');
     } catch (error: any) {
-      Alert.alert('Connexion échouée', error.message);
+      Alert.alert('Connexion échouée', getErrorMessage(error.code));
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    if (!email) {
+      Alert.alert('Email requis', "Entrez votre email dans le champ ci-dessus, puis appuyez sur 'Mot de passe oublié'.");
+      return;
+    }
+    setResetLoading(true);
+    try {
+      await auth().sendPasswordResetEmail(email);
+      Alert.alert(
+        'Email envoyé',
+        `Un lien de réinitialisation a été envoyé à ${email}. Vérifiez votre boîte mail (et vos spams).`
+      );
+    } catch (error: any) {
+      Alert.alert('Erreur', getErrorMessage(error.code));
+    } finally {
+      setResetLoading(false);
     }
   };
 
@@ -49,6 +90,13 @@ export default function LoginScreen({ navigation }: any) {
         secureTextEntry
       />
 
+      <TouchableOpacity onPress={handleForgotPassword} disabled={resetLoading} style={styles.forgotBtn}>
+        {resetLoading
+          ? <ActivityIndicator color="#FF0000" size="small" />
+          : <Text style={styles.forgotText}>Mot de passe oublié ?</Text>
+        }
+      </TouchableOpacity>
+
       <TouchableOpacity style={styles.btn} onPress={handleLogin} disabled={loading}>
         {loading
           ? <ActivityIndicator color="#FFF" />
@@ -71,6 +119,8 @@ const styles = StyleSheet.create({
     padding: 15, fontSize: 16, color: '#000',
     marginBottom: 15, backgroundColor: '#F9F9F9'
   },
+  forgotBtn: { alignItems: 'flex-end', marginBottom: 20 },
+  forgotText: { color: '#FF0000', fontSize: 14, fontWeight: '600' },
   btn: {
     backgroundColor: '#FF0000', padding: 18,
     borderRadius: 25, alignItems: 'center', elevation: 3
